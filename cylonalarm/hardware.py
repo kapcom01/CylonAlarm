@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 from time import sleep
 
-class SynHardware():
+class CylonHardware():
 	def __init__(self):
 		GPIO.setmode(GPIO.BOARD)
 		self.pin = {
@@ -13,7 +13,7 @@ class SynHardware():
 		GPIO.setup(self.pin["buzzer"], GPIO.OUT, initial=0)
 		GPIO.setup(self.pin["led"], GPIO.OUT, initial=0)
 		GPIO.setup(self.pin["seirhna"], GPIO.OUT, initial=0)
-		GPIO.setup(self.pin["pagides"], GPIO.IN)
+		GPIO.setup(self.pin["pagides"], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 		self.alarming = False
 		
@@ -53,6 +53,15 @@ class SynHardware():
 	def buzzer_set_state(self, state):
 		GPIO.output(self.pin["buzzer"], state)
 
+	def beep(self):
+		for beep in range(0,3):
+			self.buzzer_set_state(beep%2)
+			sleep(0.1)
+
+	def double_beep(self):
+		self.beep()
+		self.beep()
+
 	def bleep(self):
 		for bleep in range(0,3):
 			self.led_set_state(bleep%2)
@@ -77,6 +86,12 @@ class SynHardware():
 			if GPIO.input(self.pin["pagides"]):
 				return 1
 		return 0
+
+	def addSensorEvent(self,my_callback):
+		GPIO.add_event_detect(self.pin["pagides"], GPIO.RISING, callback=my_callback, bouncetime=500)
+
+	def removeSensorEvent(self):
+		GPIO.remove_event_detect(self.pin["pagides"])
 
 	def isAlarming(self):
 		return self.alarming

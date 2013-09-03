@@ -1,124 +1,50 @@
-from hardware import SynHardware
-from threading import Timer, Thread, Event
+from threading import Thread, Event, Timer
+from datetime import datetime
+from cylonalarm.hardware import *
 import smtplib
 from email.mime.text import MIMEText
-from datetime import datetime
-from subprocess import call
 
 import config #temporary configuration file
 
-class SynBase:
+def print_time():
+	now = datetime.now()
+	now = now.strftime("%d/%m/%y %H:%M.%S")
+	return now
+
+hw = CylonHardware()
+
+class BaseThread:
 	def __init__(self):
-		self.xronos_seirhnas = config.alarm_duration
-		self.state = "DEACTIVATED"
+		self.event = Event()
+		self.thread = Thread()
 
-class SynThreads(SynBase):
+	def thread_start(self):
+		self.event.clear()
+		self.setup_thread()
+		self.thread.start()
+
+	def thread_stop(self):
+		self.event.set()
+		try:
+			self.thread.join()
+		except:
+			pass
+
+	#def setup_thread(self):
+		#self.thread = Thread(target=self.thread_action, args=(self.event,))
+
+class SendSMS(BaseThread):
+	"""docstring for SendSMS"""
 	def __init__(self):
-		SynBase.__init__(self)
+		BaseThread.__init__(self)
 
-		self.e_activate = Event()
-		self.e_alarm_seirhna = Event()
-		self.e_sense_movement = Event()
-
-		self.hw = SynHardware()
-
-	def alarm_seirhna_start(self):
-		self.alarm_seirhna_stop()
-		self.e_alarm_seirhna.clear()
-		self.alarm_seirhna = Thread(target=self.t_alarm_seirhna, args=(self.xronos_seirhnas, self.e_alarm_seirhna))
-		self.alarm_seirhna.start()
-
-	def alarm_seirhna_stop(self):
-		self.e_alarm_seirhna.set()
-		try:
-			self.alarm_seirhna.join()
-		except:
-			pass
-
-	def t_alarm_seirhna(self,xronos,stop_event):
-		if not stop_event.is_set():
-			self.hw.alarm_on()
-			print("\033[91m["+self.print_time()+"] <<<  ALERT  >>>\033[0m")
-			self.send_sms()
-			stop_event.wait(xronos)
-			print("["+self.print_time()+"]\033[1;97m Alarm stopped\033[0m")
-		self.hw.alarm_off()
-
-	def sense_movement_start(self):
-		self.sense_movement_stop()
-		self.e_sense_movement.clear()
-		self.sense_movement = Thread(target=self.t_sense_movement, args=(self.e_sense_movement,))
-		self.sense_movement.start()
-
-	def sense_movement_stop(self):
-		self.e_sense_movement.set()
-		try:
-			self.sense_movement.join()
-		except:
-			pass
-
-	def t_sense_movement(self,stop_event):
-		while(not stop_event.is_set()):
-			stop_event.wait(0.1) # 98% cpu usage without it
-			if self.hw.getSensorIn() and self.state == "ACTIVATED" and not self.hw.isAlarming():
-				print("["+self.print_time()+"]\033[1;97m Movement detected (>500ms)\033[0m")
-				for seconds_to_alarm in range(0,10):
-					if self.state == "ACTIVATED":
-						if seconds_to_alarm == 9: self.alarm_seirhna_start()
-						else:
-							self.hw.double_bleep()
-							stop_event.wait(1)
-					else: break
-
-	def activate_start(self):
-		self.activate_stop()
-		self.e_activate.clear()
-		self.activate = Thread(target=self.t_activate, args=(15, self.e_activate))
-		self.activate.start()
-
-	def activate_stop(self):
-		self.e_activate.set()
-		try:
-			self.activate.join()
-		except:
-			pass
-
-	def t_activate(self, secs, stop_event):
-		if self.state == "DEACTIVATED":
-			print("["+self.print_time()+"] Activating in "+str(secs)+" seconds...")
-			#with open("synagermos.log", "a") as f:
-			#	f.write("["+self.print_time()+"] Activating in "+str(secs)+" seconds...")
-
-		self.state = "ACTIVATING"
-
-		for seconds_to_activation in range(0, secs):
-			if not stop_event.is_set():
-				if seconds_to_activation < secs-1:
-					self.hw.double_bleep()
-					stop_event.wait(1)
-				else:
-					self.hw.led_on()
-					self.sense_movement_start()
-					self.state = "ACTIVATED"
-					print("["+self.print_time()+"] \033[93mActivated\033[0m")
-					break
-
-	def stop_all_threads(self):
-		self.activate_stop()
-		self.alarm_seirhna_stop()
-		self.sense_movement_stop()
-
-	def t_deactivate(self):
-		self.activate_stop()
-		self.alarm_seirhna_stop()
-		self.hw.bleep()
-		self.state = "DEACTIVATED"
-		print("["+self.print_time()+"] \033[93mDeactivated\033[0m")
+	def setup_thread(self):
+		self.thread = Thread(target=self.thread_action, args=(self.event,))
 
 	def send_mail(self):
-		msg = MIMEText("""Synagermos tora!""")
 		sender = config.mail_sender
 		recipients = config.mail_receipents
+		msg = MIMEText("""Synagermos tora!""")
 		msg['Subject'] = "SYNAGERMOS sto YPOGEIO!!"
 		msg['From'] = sender
 		msg['To'] = ", ".join(recipients)
@@ -135,25 +61,108 @@ class SynThreads(SynBase):
 		server.sendmail(sender, recipients, msg.as_string())
 		server.quit()
 
-	def send_sms(self):
-		print("["+self.print_time()+"] Sending SMS...")
+	def thread_action(self,stop_event):
+		print("["+print_time()+"] Sending SMS...")
 		self.send_mail()
 
-	def print_time(self):
-		now = datetime.now()
-		now = now.strftime("%d/%m/%y %H:%M.%S")
-		return now
+class Beeping(BaseThread):
+	def setup_thread(self):
+		self.thread = Thread(target=self.thread_action, args=(self.event,))
 
-class SynControl(SynThreads):
+	def thread_action(self, stop_event):
+		while not stop_event.is_set():
+			hw.double_beep()
+			self.event.wait(1)
+
+class CylonAlarm():
 	def __init__(self):
-		SynThreads.__init__(self)
-		print("\n["+self.print_time()+"] \033[92mRunning...\033[0m Press Ctrl+C to exit")
+		self.state = ""
+		self.activation_timer = Timer(0, self.dummy)
+		self.alarm_delay_timer = Timer(0, self.dummy)
+		self.alarm_duration_timer = Timer(0, self.dummy)
+		self.beeping_timer=Beeping()
+		self.sendsms = SendSMS()
+		print("\n["+print_time()+"] \033[92mRunning...\033[0m Press Ctrl+C to exit")
+		self.deactivate()
+
+	# just a workaround to be able to call activation_timer.cancel() without being really started
+	def dummy(self):
+		pass
+
+	def is_deactivated(self):
+		if self.state == "ACTIVATED" or self.state == "ACTIVATING":
+			return False
+		else:
+			return True
+
+	def actdeact(self,nfc_reader_id):
+		print("["+print_time()+"] Call from NFC Reader ID: "+nfc_reader_id)
+		if nfc_reader_id!="1":
+			print("["+print_time()+"]  ignoring call...")
+		else:
+			if self.is_deactivated():
+				self.sactivate()
+			else:
+				self.deactivate()
 
 	def sactivate(self):
-		self.activate_start()
+			print("["+print_time()+"] Activating in "+str(config.activation_wait)+" seconds...")
+			self.state = "ACTIVATING"
+			self.beeping_timer.thread_start()
+			self.activation_timer = Timer(config.activation_wait,self.start_sensing)
+			self.activation_timer.start()
 
 	def deactivate(self):
-		self.t_deactivate()
+                self.beeping_timer.thread_stop()
+		self.activation_timer.cancel()
+		self.alarm_delay_timer.cancel()
+		self.alarm_duration_timer.cancel()
+		self.stop_sensing()
+		hw.alarm_off()
+                hw.beep()
+                hw.led_off()
+		self.state = "DEACTIVATED"
+		print("["+print_time()+"] \033[93mDeactivated\033[0m")
 
-	def cleanup(self):
-		self.stop_all_threads()
+	def start_sensing(self):
+		self.beeping_timer.thread_stop()
+		hw.led_on()
+		self.state = "ACTIVATED"
+		print("["+print_time()+"] \033[93mActivated\033[0m")
+		hw.addSensorEvent(self.movement)
+
+	def stop_sensing(self):
+		hw.removeSensorEvent()
+
+	def movement(self,channel):
+		if hw.getSensorIn() and not hw.isAlarming() and not self.alarm_delay_timer.isAlive():
+			print("["+print_time()+"]\033[1;97m Movement detected (>500ms), you have "+str(config.alarm_delay)+" seconds...\033[0m")
+                        self.beeping_timer.thread_start()
+			self.alarm_delay_timer = Timer(config.alarm_delay,self.sound_the_alarm)
+			self.alarm_delay_timer.start()
+			self.stop_sensing()
+
+	def sound_the_alarm(self):
+		hw.alarm_on()
+		print("\033[91m["+print_time()+"] <<<  ALERT  >>>\033[0m")
+		self.sendsms.thread_start()
+		self.alarm_duration_timer = Timer(config.alarm_duration,self.stop_the_alarm)
+		self.alarm_duration_timer.start()
+
+	def stop_the_alarm(self):
+		hw.alarm_off()
+		print("["+print_time()+"]\033[1;97m Alarm stopped\033[0m")
+
+	def __exit__(self):
+		self.activation_timer.cancel()
+		self.alarm_delay_timer.cancel()
+		self.alarm_duration_timer.cancel()
+		try:
+			self.activation_timer.join()
+			self.alarm_delay_timer.join()
+			self.alarm_duration_timer.join()
+		except:
+			pass
+		self.beeping_timer.thread_stop()
+		self.sendsms.thread_stop()
+		hw.cleanup()
