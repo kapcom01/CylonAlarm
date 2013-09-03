@@ -1,5 +1,5 @@
 # About
-This is a **work-in-progress** project. The goal is to become a complete Home Alarm System, easy to setup and use and completely open source from top to bottom, so everyone can install it, study it, change it and do anything one might want to do with it.
+This is a **work-in-progress** project. The goal is to become a complete Home Alarm System, comparable to the expensive multi zone commercial systems, easy to setup and use and completely open source from top to bottom, so everyone can install it, study it, change it and do anything one might want to do with it.
 
 ## Current Status (v0.2)
 With this version we have a working alarm system for our home/lab/garage/etc. It can detect an intrusion with motion detectors and door switches, and will turn on one or more sirens. It is enabled and disabled by the residents using nfc tags which everyone can have in their keychains. It can also send a notification-email to pre-configured email addresses using a gmail account.
@@ -54,13 +54,10 @@ First of all we log in to Raspberry Pi *(running Raspbian OS)* through ssh:
 In this version we need the **nfc-eventd** which will provide our program the information of the nfc tags that are being used.
 So we need to download and compile it from source following [these instructions](http://nfc-tools.org/index.php?title=Nfc-eventd)
 
-We have to install some dependencies:
+We have to install some dependencies, and a virtual screen (tmux):
 
     sudo apt-get install python-dbus
     sudo apt-get install python-gobject
-
-Also we will need a virtual screen for dbus to work so we will install **tmux** for that:
-
     sudo apt-get install tmux
 
 Now we can download CylonAlarm:
@@ -71,14 +68,8 @@ Now we can download CylonAlarm:
 
 We MUST make the following changes:
 
-- Rename **cylonalarm/config.sample.py** to **cylonalarm/config.py** and then edit it.
-- In **/etc/nfc-eventd.conf**:
-    - *event tag_insert*:
-
-            action = "python /home/pi/CylonAlarm/check_tag-0.2.py $TAG_UID";
-    - *tag_remove*:
-
-            action = "python /home/pi/CylonAlarm/check_tag-0.2.py removed"; 
+- Copy **cylonalarm/config.sample.py** to **cylonalarm/config.py** and then edit it.
+- Add *event tag_insert* action of **/etc/nfc-eventd.conf** to: `action = "python /home/pi/CylonAlarm/check_tag-0.2.py $TAG_UID 1";` 
 
 # Running
 Finally we can run the program in the following way:
