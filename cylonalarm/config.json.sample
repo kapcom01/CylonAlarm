@@ -1,0 +1,194 @@
+{
+	"settings" : {
+		"alarm_duration" : 300,
+		"activation_wait" : 15,
+		"alarm_delay" : 10,
+
+		"mail_sender" : "test@gmail.com",
+		"mail_receipents" : ["user1@gmail.com", "user2@yahoo.com"],
+
+		"mail_username" : "test@gmail.com",
+		"mail_password" : "password"
+	},
+
+	"tags" : [
+		{
+			"id" : "00000001",
+			"name" :" Dad's Access Card",
+			"domain_id" : [0]
+		},
+
+		{
+			"id" : "00000002",
+			"name" : "Mom's Keychain Tag",
+			"domain_id" : [0]
+		},
+
+		{
+			"id" : "00000003",
+			"name" : "Hacker Kid's Android",
+			"domain_id" : [0,1]
+		}
+	],
+
+	"domains" : [
+		{
+			"id" : 0,
+			"name" : "Home"
+		},
+
+		{
+			"id" : 1,
+			"name" : "Lab"
+		}
+	],
+
+	"connections": {
+		"zones" : [
+			{
+				"id" : 0,
+				"pin" : 7,
+				"domain" : [0],
+				"level" : 1
+			},
+			{
+				"id" : 1,
+				"pin" : 11,
+				"domain" : [0],
+				"level" : 1
+			},
+			
+			{
+				"id" : 2,
+				"pin" : 12,
+				"domain" : [0],
+				"level" : 1
+			},
+			
+			{
+				"id" : 3,
+				"pin" : 13,
+				"domain" : [0],
+				"level" : 1
+			},
+			
+			{
+				"id" : 4,
+				"pin" : 15,
+				"domain" : [0],
+				"level" : 1
+			},
+			
+			{
+				"id" : 5,
+				"pin" : 19,
+				"domain" : [0],
+				"level" : 1
+			},
+			
+			{
+				"id" : 6,
+				"pin" : 21,
+				"domain" : [0],
+				"level" : 1
+			},
+			
+			{
+				"id" : 7,
+				"pin" : 22,
+				"domain" : [0,1],
+				"level" : 1
+			}
+		],
+
+		"sirens" : [
+			{
+				"id" : 1,
+				"pin" : 18,
+				"domain" : [0,1]
+			},
+			
+			{
+				"id" : 2,
+				"pin" : 16,
+				"domain" : [0,1]
+			}
+		],
+
+		"free_gpios" : [
+			{
+				"id" : 1,
+				"pin" : 23,
+				"direction" : "OUT",
+				"default_value" : 0
+			},
+			
+			{
+				"id" : 2,
+				"pin" : 24,
+				"direction" : "OUT",
+				"default_value" : 0
+			},
+			
+			{
+				"id" : 3,
+				"pin" : 26,
+				"direction" : "OUT",
+				"default_value" : 0
+			}
+		]
+	},
+
+	"states" : {
+		"activating" : {
+			"actions" : ["Flashing LED", "Double Beep"],
+			"description" : "When the activation process begins by receiving a NFC Call"
+		},
+
+		"activated" : {
+			"actions" : ["Quick Beep", "Turn on LED"],
+			"description" : "When the activation process completes and the system is Activated"
+		},
+
+		"deactivated" : {
+			"actions" : ["Quick Beep"],
+			"description" : "When the system gets Deactivated by receiving a NFC Call"
+		},
+
+		"movement" : {
+			"actions" : ["Turn on LED", "Double Beep"],
+			"description" : "When the system is Activated and the Sensors detect Movement"
+		},
+
+		"alarming" : {
+			"actions" : ["Turn on LED"],
+			"description" : "When Movement is detected and the delay passes, the system gets into Alarming state"
+		}
+	},
+
+	"actions" : {
+		"Turn on LED" : {
+			"free_gpio_id" : 2,
+			"hardcoded_method" : "high",
+			"loop" : "no"
+		},
+
+		"Flashing LED" : {
+			"free_gpio_id" : 2,
+			"hardcoded_method" : "double_high_edge",
+			"loop" : "yes"
+		},
+
+		"Quick Beep" : {
+			"free_gpio_id" : 3,
+			"hardcoded_method" : "high_edge",
+			"loop" : "no"
+		},
+
+		"Double Beep" : {
+			"free_gpio_id" : 3,
+			"hardcoded_method" : "double_high_edge",
+			"loop" : "yes"
+		}
+	}
+}
