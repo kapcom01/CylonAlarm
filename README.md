@@ -1,8 +1,8 @@
 # About
 This is a **work-in-progress** project. The goal is to become a complete Home Alarm System, comparable to the expensive multi zone commercial systems, easy to setup and use and completely open source from top to bottom, so everyone can install it, study it, change it and do anything one might want to do with it.
 
-## Current Status (v0.2.2)
-With this version we have a working alarm system for our home/lab/garage/etc. It can detect an intrusion with motion detectors and door switches, and will turn on one or more sirens. It is enabled and disabled by the residents using nfc tags which everyone can have in their keychains. It can also send a notification-email to pre-configured email addresses using a gmail account.
+## Current Status (v0.2.8)
+With this version we have a working alarm system for our home/lab/garage/etc (one or more at the same time). It can **detect an intrusion** with motion detectors and door switches, and will turn on one or more **sirens**. It is enabled and disabled by the residents using **nfc tags** (to one or more installed nfc readers) which everyone can have in their keychains. It can also send a **notification-email** to pre-configured email addresses using a gmail account. In addition it can use GPIOs to trigger **custom made actions**.
 
 # Warning!
 In this stage the system is for people who really know what they are doing. Experience in electronics and software is required.
@@ -64,12 +64,12 @@ Now we can download CylonAlarm:
 
     git clone https://github.com/kapcom01/CylonAlarm.git
     cd CylonAlarm
-    git checkout v0.2.2
+    git checkout v0.2.8
 
 We MUST make the following changes:
 
-- Copy **cylonalarm/config.sample.py** to **cylonalarm/config.py** and then edit it.
-- Add *event tag_insert* action of **/etc/nfc-eventd.conf** to: `action = "python /home/pi/CylonAlarm/check_tag-0.2.py $TAG_UID 1";` 
+- Copy **cylonalarm/config.json.sample** to **cylonalarm/config.json** and then **EDIT** it.
+- Add *event tag_insert* action of **/etc/nfc-eventd.conf** to: `action = "python /home/pi/CylonAlarm/check_tag.py $TAG_UID 0";` 
 
 # Running
 Finally we can run the program in the following way:
