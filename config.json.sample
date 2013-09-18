@@ -168,26 +168,65 @@
 
 	"actions" : {
 		"Turn on LED" : {
+			"state" : ["activated","movement","alarming"],
+			"domain" : [0],
+			"type" : "free_gpios",
 			"free_gpio_id" : 2,
 			"hardcoded_method" : "high",
 			"loop" : "no"
 		},
 
 		"Flashing LED" : {
+			"state" : ["activating"],
+			"domain" : [0],
+			"type" : "free_gpios",
 			"free_gpio_id" : 2,
 			"hardcoded_method" : "double_high_edge",
 			"loop" : "yes"
 		},
 
 		"Quick Beep" : {
+			"state" : ["activated","deactivated"],
+			"domain" : [0],
+			"type" : "free_gpios",
 			"free_gpio_id" : 3,
 			"hardcoded_method" : "high_edge",
 			"loop" : "no"
 		},
 
 		"Double Beep" : {
+			"state" : ["activating", "movement"],
+			"domain" : [0],
+			"type" : "free_gpios",
 			"free_gpio_id" : 3,
 			"hardcoded_method" : "double_high_edge",
+			"loop" : "yes"
+		},
+
+		"Welcome Image" : {
+			"state" : ["deactivated"],
+			"domain" : [1],
+			"type" : "video",
+			"hardcoded_method" : "show_image",
+			"images" : ["welcome.jpg"],
+			"loop" : "no"
+		},
+
+		"Bye Animation" : {
+			"state" : ["activating"],
+			"domain" : [1],
+			"type" : "video",
+			"hardcoded_method" : "animate_images",
+			"images" : ["door-opened.jpg", "door-closed.jpg"],
+			"loop" : "yes"
+		},
+
+		"Deactivate Animation" : {
+			"state" : ["movement"],
+			"domain" : [1],
+			"type" : "video",
+			"hardcoded_method" : "animate_images",
+			"images" : ["nfc-up.jpg", "nfc-down.jpg"],
 			"loop" : "yes"
 		}
 	}

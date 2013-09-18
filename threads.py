@@ -92,10 +92,12 @@ class Action(BaseThread):
 		BaseThread.thread_stop(self)
 
 class CylonAlarm():
-	def __init__(self,domain_id,config,on_state_actions,hardware):
-		self.hardware=hardware
+	def __init__(self,domain_id,config,on_state_actions,hardware,video):
 		self.domain_id = domain_id
 		self.config = config
+		self.hardware=hardware
+		self.video=video
+
 		self.state = ""
 
 		for zone in config["connections"]["zones"]:
@@ -169,12 +171,18 @@ class CylonAlarm():
 		pass_check = self.hardware.getSensorInAfterDelay(channel) and self.state=="activated" and not self.state=="alarming" and not self.alarm_delay_timer.isAlive()
 		if pass_check:
 			self.action_thread.thread_stop()
-			self.state = "movement"
-			print(print_time()+" [Domain "+str(self.domain_id)+"]\033[1;97m Movement detected (>500ms), you have "+str(self.config["settings"]["alarm_delay"])+" seconds...\033[0m")
-			self.alarm_delay_timer = Timer(self.config["settings"]["alarm_delay"],self.sound_the_alarm)
-			self.alarm_delay_timer.start()
 			self.stop_sensing()
-			self.action_thread.new_state_set(self.state)
+			self.state = "movement"
+			for zone in self.config["connections"]["zones"]:
+				if zone["pin"] == channel:
+					if zone["level"] == 1:
+						self.alarm_delay_timer = Timer(self.config["settings"]["alarm_delay"],self.sound_the_alarm)
+						self.alarm_delay_timer.start()
+						self.action_thread.new_state_set(self.state)
+					elif zone["level"] == 2:
+						self.sound_the_alarm()
+					break
+			print(print_time()+" [Domain "+str(self.domain_id)+"]\033[1;97m Movement detected (Level "+str(zone["level"])+"), you have "+str(self.config["settings"]["alarm_delay"])+" seconds...\033[0m")
 
 	def sound_the_alarm(self):
 		self.action_thread.thread_stop()

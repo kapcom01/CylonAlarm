@@ -1,28 +1,37 @@
 #! /usr/bin/env python
 import sys
+import os
 import gobject
 import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 
 import json
-with open("cylonalarm/config.json") as f:
+
+from threads import CylonAlarm
+from hardware import CylonHardware
+from video import CylonVideo
+
+lib_path = os.path.abspath('lib/')
+sys.path.append(lib_path)
+
+with open("config.json") as f:
 	config = json.load(f)
 
-from cylonalarm.threads import CylonAlarm
-from cylonalarm.hardware import CylonHardware
-hw = CylonHardware(config)
+chw = CylonHardware(config)
+cv = CylonVideo()
 ca = []
 
 print("CylonAlarm version: 0.2.8")
+cv.show_welcome()
 
 hardcoded_methods = {
-	"high" : hw.high,
-	"low" : hw.low,
-	"high_edge" : hw.high_edge,
-	"low_edge" : hw.low_edge,
-	"double_high_edge" : hw.double_high_edge,
-	"double_low_edge" : hw.double_low_edge,
+	"high" : chw.high,
+	"low" : chw.low,
+	"high_edge" : chw.high_edge,
+	"low_edge" : chw.low_edge,
+	"double_high_edge" : chw.double_high_edge,
+	"double_low_edge" : chw.double_low_edge,
 }
 
 states = ["activated", "alarming", "movement", "activating", "deactivated"]
@@ -31,7 +40,7 @@ on_state_actions = {
 	"activated" : [
 		#{				# template
 		#	"pin" : 0,
-		#	"hardcoded_method" : hw.high
+		#	"hardcoded_method" : chw.high
 		#}
 	],
 	"alarming" : [],
@@ -57,7 +66,7 @@ for state in states:
 					})
 
 for domain in config["domains"]:
-	ca.append(CylonAlarm(domain["id"],config,on_state_actions,hw))	# initiate
+	ca.append(CylonAlarm(domain["id"],config,on_state_actions,chw,cv))	# initiate
 
 class MyDBUSService(dbus.service.Object):
 	def __init__(self):
@@ -81,8 +90,8 @@ except:
 	print("\nCleaning up...")
 	for cylonalarm in ca:
 		cylonalarm.__exit__()
-	hw.reset_to_default_states()
-	hw.cleanup()
+	chw.reset_to_default_states()
+	chw.cleanup()
 	gobject.MainLoop().quit()
 	print("Bye")
 	sys.exit(0)
