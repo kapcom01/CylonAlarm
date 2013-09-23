@@ -32,11 +32,11 @@ hardcoded_methods = {
 	"low_edge" : chw.low_edge,
 	"double_high_edge" : chw.double_high_edge,
 	"double_low_edge" : chw.double_low_edge,
+	"show_image" : cv.show_image,
+	"animate_images" : cv.animate_images
 }
-
-states = ["activated", "alarming", "movement", "activating", "deactivated"]
-
-on_state_actions = {
+for domain in config["domains"]:
+	on_state_actions = {
 	"activated" : [
 		#{				# template
 		#	"pin" : 0,
@@ -48,25 +48,29 @@ on_state_actions = {
 	"activating" : [],
 	"deactivated" : []
 	}
-
-for state in states:
-	actions = config["states"][state]["actions"]
-	for action in actions:
-		hardcoded_method = hardcoded_methods[config["actions"][action]["hardcoded_method"]]
-		free_gpio_id = config["actions"][action]["free_gpio_id"]
-		loop = config["actions"][action]["loop"]
-		for free_gpio in config["connections"]["free_gpios"]:
-			if free_gpio_id == free_gpio["id"]: # loop se ola.. den maresei poly..
-				pin = free_gpio["pin"]
-				# add in on_state_action dictionary
-				on_state_actions[state].append({
-					"pin" : pin,
-					"hardcoded_method" : hardcoded_method,
-					"loop" : loop
-					})
-
-for domain in config["domains"]:
-	ca.append(CylonAlarm(domain["id"],config,on_state_actions,chw,cv))	# initiate
+	for action in config["actions"]:
+		for d config["actions"][action]["domain"]:
+			if d==domain["id"]:
+				for state in config["actions"][action]["state"]:
+					if config["actions"][action]["type"] == 'free_gpios':
+						for free_gpio in config["connections"]["free_gpios"]:
+							if free_gpio["id"] == config["actions"][action]["free_gpio_id"]:
+								on_state_actions[state].append({
+									"type" : "free_gpios",
+									"pin" : free_gpio["pin"],
+									"hardcoded_method" : hardcoded_methods[config["actions"][action]["hardcoded_method"]],
+									"loop" : config["actions"][action]["loop"]
+									})
+								break
+					elif config["actions"][action]["type"] == 'video':
+						on_state_actions[state].append({
+							"type" : "video",
+							"images" : config["actions"][action]["images"],
+							"hardcoded_method" : hardcoded_methods[config["actions"][action]["hardcoded_method"]],
+							"loop" : config["actions"][action]["loop"]
+							})
+				ca.append(CylonAlarm(domain["id"],config,on_state_actions,chw,cv))	# initiate domain instances
+				break
 
 class MyDBUSService(dbus.service.Object):
 	def __init__(self):

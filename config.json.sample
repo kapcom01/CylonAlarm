@@ -139,33 +139,6 @@
 		]
 	},
 
-	"states" : {
-		"activating" : {
-			"actions" : ["Flashing LED", "Double Beep"],
-			"description" : "When the activation process begins by receiving a NFC Call"
-		},
-
-		"activated" : {
-			"actions" : ["Quick Beep", "Turn on LED"],
-			"description" : "When the activation process completes and the system is Activated"
-		},
-
-		"deactivated" : {
-			"actions" : ["Quick Beep"],
-			"description" : "When the system gets Deactivated by receiving a NFC Call"
-		},
-
-		"movement" : {
-			"actions" : ["Turn on LED", "Double Beep"],
-			"description" : "When the system is Activated and the Sensors detect Movement"
-		},
-
-		"alarming" : {
-			"actions" : ["Turn on LED"],
-			"description" : "When Movement is detected and the delay passes, the system gets into Alarming state"
-		}
-	},
-
 	"actions" : {
 		"Turn on LED" : {
 			"state" : ["activated","movement","alarming"],

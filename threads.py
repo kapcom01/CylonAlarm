@@ -63,11 +63,12 @@ class SendSMS(BaseThread):
 		self.send_mail()
 
 class Action(BaseThread):
-	def __init__(self,on_state_actions,hardware):
+	def __init__(self,on_state_actions,hardware,video):
 		BaseThread.__init__(self)
 		self.on_state_actions = on_state_actions
 		self.actions = []
 		self.hardware=hardware
+		self.video=video
 
 	def setup_thread(self):
 		self.thread = Thread(target=self.thread_action, args=(self.event,))
@@ -80,11 +81,17 @@ class Action(BaseThread):
 		a=[]
 		for a in self.actions:
 			if a["loop"]=="no":
-				a["hardcoded_method"](a["pin"])
+				if a["type"]=="free_gpios":
+					a["hardcoded_method"](a["pin"])
+				elif a["type"]=="video":
+					a["hardcoded_method"](a["images"])
 		while not stop_event.is_set():
 			for a in self.actions:
 				if a["loop"]=="yes":
-					a["hardcoded_method"](a["pin"])
+					if a["type"]=="free_gpios":
+						a["hardcoded_method"](a["pin"])
+					elif a["type"]=="video":
+						a["hardcoded_method"](a["images"])
 			self.event.wait(1)
 
 	def thread_stop(self):
@@ -108,7 +115,7 @@ class CylonAlarm():
 		self.activation_timer = Timer(0, self.dummy)
 		self.alarm_delay_timer = Timer(0, self.dummy)
 		self.alarm_duration_timer = Timer(0, self.dummy)
-		self.action_thread=Action(on_state_actions,self.hardware)
+		self.action_thread=Action(on_state_actions,self.hardware,self.video)
 		self.sendsms = SendSMS(self.domain_id,self.config)
 		print("\n"+print_time()+" [Domain "+str(self.domain_id)+"] \033[92mRunning...\033[0m Press Ctrl+C to exit")
 		self.deactivate() # todo
