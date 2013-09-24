@@ -189,7 +189,10 @@ class CylonAlarm():
 					elif zone["level"] == 2:
 						self.sound_the_alarm()
 					break
-			print(print_time()+" [Domain "+str(self.domain_id)+"]\033[1;97m Movement detected (Level "+str(zone["level"])+"), you have "+str(self.config["settings"]["alarm_delay"])+" seconds...\033[0m")
+			for zone in self.config["connections"]["zones"]:
+				if channel==zone["pin"]:
+					zone_id=zone["id"]
+			print(print_time()+" [Domain "+str(self.domain_id)+"]\033[1;97m Movement detected (Zone:"+str(zone_id)+", Lvl:"+str(zone["level"])+"), you have "+str(self.config["settings"]["alarm_delay"])+" seconds...\033[0m")
 
 	def sound_the_alarm(self):
 		self.action_thread.thread_stop()

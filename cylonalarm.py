@@ -23,7 +23,6 @@ cv = CylonVideo()
 ca = []
 
 print("CylonAlarm version: 0.2.8")
-cv.show_welcome()
 
 hardcoded_methods = {
 	"high" : chw.high,
@@ -49,7 +48,7 @@ for domain in config["domains"]:
 	"deactivated" : []
 	}
 	for action in config["actions"]:
-		for d config["actions"][action]["domain"]:
+		for d in config["actions"][action]["domain"]:
 			if d==domain["id"]:
 				for state in config["actions"][action]["state"]:
 					if config["actions"][action]["type"] == 'free_gpios':
@@ -69,8 +68,8 @@ for domain in config["domains"]:
 							"hardcoded_method" : hardcoded_methods[config["actions"][action]["hardcoded_method"]],
 							"loop" : config["actions"][action]["loop"]
 							})
-				ca.append(CylonAlarm(domain["id"],config,on_state_actions,chw,cv))	# initiate domain instances
 				break
+	ca.append(CylonAlarm(domain["id"],config,on_state_actions,chw,cv))	# initiate domain instances
 
 class MyDBUSService(dbus.service.Object):
 	def __init__(self):
