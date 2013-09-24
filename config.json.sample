@@ -201,6 +201,42 @@
 			"hardcoded_method" : "animate_images",
 			"images" : ["nfc-up.jpg", "nfc-down.jpg"],
 			"loop" : "yes"
+		},
+
+		"Deactivated Audio" : {
+			"state" : ["deactivated"],
+			"domain" : [1],
+			"type" : "audio",
+			"hardcoded_method" : "play_audio",
+			"audio" : ["deactivated.ogg"],
+			"loop" : "no"
+		},
+
+		"Activated Audio" : {
+			"state" : ["activated"],
+			"domain" : [1],
+			"type" : "audio",
+			"hardcoded_method" : "play_audio",
+			"audio" : ["activated.ogg"],
+			"loop" : "no"
+		},
+
+		"Movement Audio" : {
+			"state" : ["movement"],
+			"domain" : [1],
+			"type" : "audio",
+			"hardcoded_method" : "play_audio",
+			"audio" : ["movement.ogg"],
+			"loop" : "yes"
+		},
+
+		"Alarming Audio" : {
+			"state" : ["alarming"],
+			"domain" : [1],
+			"type" : "audio",
+			"hardcoded_method" : "play_audio",
+			"audio" : ["alarming.ogg"],
+			"loop" : "yes"
 		}
 	}
 }
