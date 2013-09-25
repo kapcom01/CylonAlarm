@@ -90,9 +90,9 @@ class Action(BaseThread):
 				if a["loop"]=="yes":
 					if a["type"]=="free_gpios":
 						a["hardcoded_method"](a["pin"])
+						self.event.wait(1)
 					elif a["type"]=="video":
 						a["hardcoded_method"](a["images"])
-			self.event.wait(1)
 
 	def thread_stop(self):
 		self.hardware.reset_to_default_states()
@@ -205,7 +205,7 @@ class CylonAlarm():
 		self.sendsms.thread_start()
 		self.alarm_duration_timer = Timer(self.config["settings"]["alarm_duration"],self.stop_the_alarm)
 		self.alarm_duration_timer.start()
-		self.action_thread.new_state_set("activated") # fix it
+		self.action_thread.new_state_set("alarming")
 
 	def stop_the_alarm(self):
 		for siren in self.config["connections"]["sirens"]:

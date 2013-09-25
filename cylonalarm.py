@@ -24,6 +24,10 @@ ca = []
 
 print("CylonAlarm version: 0.2.8")
 
+for action in config["actions"]:
+	if config["actions"][action]["type"]=="video":
+		cv.load_images(config["actions"][action]["images"])
+
 hardcoded_methods = {
 	"high" : chw.high,
 	"low" : chw.low,
@@ -34,6 +38,7 @@ hardcoded_methods = {
 	"show_image" : cv.show_image,
 	"animate_images" : cv.animate_images
 }
+
 for domain in config["domains"]:
 	on_state_actions = {
 	"activated" : [
