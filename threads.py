@@ -8,6 +8,11 @@ def print_time():
 	now = now.strftime("%d/%m/%y %H:%M.%S")
 	return now
 
+def log(text):
+	print(text)
+	with open("cylonalarm.log","a") as f:
+		f.write(text+"\n")
+
 class BaseThread:
 	def __init__(self):
 		self.event = Event()
@@ -30,10 +35,11 @@ class BaseThread:
 
 class SendSMS(BaseThread):
 	"""docstring for SendSMS"""
-	def __init__(self,domain_id,config):
+	def __init__(self,domain_name,config):
 		BaseThread.__init__(self)
-		self.domain_id = domain_id
+		self.domain_name = domain_name
 		self.config = config
+		self.text=""
 
 	def setup_thread(self):
 		self.thread = Thread(target=self.thread_action, args=(self.event,))
@@ -41,8 +47,8 @@ class SendSMS(BaseThread):
 	def send_mail(self):
 		sender = self.config["settings"]["mail_sender"]
 		recipients = self.config["settings"]["mail_receipents"]
-		msg = MIMEText(print_time()+" [Domain "+str(self.domain_id)+"] State: ALARMING")
-		msg['Subject'] = "CylonAlarm ALERT!"
+		msg = MIMEText(self.text)
+		msg['Subject'] = "ALARM! <" + self.domain_name + ">"
 		msg['From'] = sender
 		msg['To'] = ", ".join(recipients)
 
@@ -59,8 +65,11 @@ class SendSMS(BaseThread):
 		server.quit()
 
 	def thread_action(self,stop_event):
-		print(print_time()+" [Domain "+str(self.domain_id)+"] Sending SMS...")
+		log(print_time()+" ["+self.domain_name+"] Sending SMS...")
 		self.send_mail()
+
+	def set_text(self,text):
+		self.text=text
 
 class Action(BaseThread):
 	def __init__(self,on_state_actions,hardware,video):
@@ -107,6 +116,10 @@ class CylonAlarm():
 
 		self.state = ""
 
+		for domain in self.config["domains"]:
+			if domain["id"]==self.domain_id:
+				self.domain_name=domain["name"]
+
 		for zone in config["connections"]["zones"]:
 			for domain in zone["domain"]:
 				if domain == self.domain_id:
@@ -116,8 +129,8 @@ class CylonAlarm():
 		self.alarm_delay_timer = Timer(0, self.dummy)
 		self.alarm_duration_timer = Timer(0, self.dummy)
 		self.action_thread=Action(on_state_actions,self.hardware,self.video)
-		self.sendsms = SendSMS(self.domain_id,self.config)
-		print("\n"+print_time()+" [Domain "+str(self.domain_id)+"] \033[92mRunning...\033[0m Press Ctrl+C to exit")
+		self.sendsms = SendSMS(self.domain_name,self.config)
+		log("\n"+print_time()+" ["+self.domain_name+"] \033[92mRunning...\033[0m Press Ctrl+C to exit")
 		self.deactivate() # todo
 
 	# just a workaround to be able to call activation_timer.cancel() without being really started
@@ -138,7 +151,7 @@ class CylonAlarm():
 
 	def sactivate(self):
 		self.action_thread.thread_stop()
-		print(print_time()+" [Domain "+str(self.domain_id)+"] Activating in "+str(self.config["settings"]["activation_wait"])+" seconds...")
+		log(print_time()+" ["+self.domain_name+"] Activating in "+str(self.config["settings"]["activation_wait"])+" seconds...")
 		self.state = "activating"				
 		self.activation_timer = Timer(self.config["settings"]["activation_wait"],self.start_sensing)
 		self.activation_timer.start()
@@ -151,7 +164,7 @@ class CylonAlarm():
 		self.alarm_duration_timer.cancel()
 		self.stop_sensing()
 		self.state = "deactivated"
-		print(print_time()+" [Domain "+str(self.domain_id)+"] \033[93mDeactivated\033[0m")
+		log(print_time()+" ["+self.domain_name+"] \033[93mDeactivated\033[0m")
 		self.action_thread.new_state_set(self.state)
 
 	def check_all_zones_state(self):
@@ -164,7 +177,7 @@ class CylonAlarm():
 	def start_sensing(self):
 		self.action_thread.thread_stop()
 		self.state = "activated"
-		print(print_time()+" [Domain "+str(self.domain_id)+"] \033[93mActivated\033[0m")
+		log(print_time()+" ["+self.domain_name+"] \033[93mActivated\033[0m")
 		self.action_thread.new_state_set(self.state)
 		# if a zone is already opened (workaround)
 		active_zone = self.check_all_zones_state()
@@ -191,8 +204,10 @@ class CylonAlarm():
 					break
 			for zone in self.config["connections"]["zones"]:
 				if channel==zone["pin"]:
-					zone_id=zone["id"]
-			print(print_time()+" [Domain "+str(self.domain_id)+"]\033[1;97m Movement detected (Zone:"+str(zone_id)+", Lvl:"+str(zone["level"])+"), you have "+str(self.config["settings"]["alarm_delay"])+" seconds...\033[0m")
+					zone_name=zone["name"]
+					break
+			self.sendsms.set_text(print_time()+" ["+self.domain_name+"] Movement detected at Zone <"+zone_name+">.")
+			log(print_time()+" ["+self.domain_name+"]\033[1;97m Movement detected at Zone <"+zone_name+">, you have "+str(self.config["settings"]["alarm_delay"])+" seconds...\033[0m")
 
 	def sound_the_alarm(self):
 		self.action_thread.thread_stop()
@@ -201,7 +216,7 @@ class CylonAlarm():
 				if domain == self.domain_id:
 					self.hardware.high(siren["pin"])
 		self.state = "alarming"
-		print("\033[91m"+print_time()+" [Domain "+str(self.domain_id)+"] <<<  ALERT  >>>\033[0m")
+		log("\033[91m"+print_time()+" ["+self.domain_name+"] <<<  ALERT  >>>\033[0m")
 		self.sendsms.thread_start()
 		self.alarm_duration_timer = Timer(self.config["settings"]["alarm_duration"],self.stop_the_alarm)
 		self.alarm_duration_timer.start()
@@ -212,7 +227,7 @@ class CylonAlarm():
 			for domain in siren["domain"]:
 				if domain == self.domain_id:
 					self.hardware.low(siren["pin"])
-		print(print_time()+" [Domain "+str(self.domain_id)+"]\033[1;97m Alarm stopped\033[0m")
+		log(print_time()+" ["+self.domain_name+"]\033[1;97m Alarm stopped\033[0m")
 
 	def __exit__(self):
 		self.activation_timer.cancel()
