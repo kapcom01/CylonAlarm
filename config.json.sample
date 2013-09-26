@@ -46,57 +46,65 @@
 	"connections": {
 		"zones" : [
 			{
-				"id" : 0,
+				"id" : 1,
+				"name" : "Front Door Magnetic Trap"
 				"pin" : 7,
 				"domain" : [0],
 				"level" : 1
 			},
 			{
-				"id" : 1,
+				"id" : 2,
+				"name" : "TAMPER on External Siren",
 				"pin" : 11,
 				"domain" : [0],
-				"level" : 1
-			},
-			
-			{
-				"id" : 2,
-				"pin" : 12,
-				"domain" : [0],
-				"level" : 1
+				"level" : 2
 			},
 			
 			{
 				"id" : 3,
+				"name" : "",
 				"pin" : 13,
-				"domain" : [0],
+				"domain" : [],
 				"level" : 1
 			},
 			
 			{
 				"id" : 4,
+				"name" : "",
 				"pin" : 15,
-				"domain" : [0],
+				"domain" : [],
 				"level" : 1
 			},
 			
 			{
 				"id" : 5,
+				"name" : "Lab Entrance Door",
 				"pin" : 19,
-				"domain" : [0],
+				"domain" : [1],
 				"level" : 1
 			},
 			
 			{
 				"id" : 6,
+				"name" : "",
 				"pin" : 21,
-				"domain" : [0],
+				"domain" : [],
 				"level" : 1
 			},
 			
 			{
 				"id" : 7,
+				"name" : "Main Door Entrance",
 				"pin" : 22,
 				"domain" : [0,1],
+				"level" : 2
+			},
+
+			{
+				"id" : 8,
+				"name" : "",
+				"pin" : 18,
+				"domain" : [],
 				"level" : 1
 			}
 		],
@@ -104,8 +112,8 @@
 		"sirens" : [
 			{
 				"id" : 1,
-				"pin" : 18,
-				"domain" : [0,1]
+				"pin" : 12,
+				"domain" : []
 			},
 			
 			{
@@ -118,21 +126,21 @@
 		"free_gpios" : [
 			{
 				"id" : 1,
-				"pin" : 23,
-				"direction" : "OUT",
-				"default_value" : 0
-			},
-			
-			{
-				"id" : 2,
 				"pin" : 24,
 				"direction" : "OUT",
 				"default_value" : 0
 			},
 			
 			{
-				"id" : 3,
+				"id" : 2,
 				"pin" : 26,
+				"direction" : "OUT",
+				"default_value" : 0
+			},
+			
+			{
+				"id" : 3,
+				"pin" : 23,
 				"direction" : "OUT",
 				"default_value" : 0
 			}
@@ -200,6 +208,15 @@
 			"type" : "video",
 			"hardcoded_method" : "animate_images",
 			"images" : ["nfc-up.jpg", "nfc-down.jpg"],
+			"loop" : "yes"
+		},
+
+		"DeactivateRed Animation" : {
+			"state" : ["alarming"],
+			"domain" : [1],
+			"type" : "video",
+			"hardcoded_method" : "animate_images",
+			"images" : ["nfc-up_red.jpg", "nfc-down_red.jpg"],
 			"loop" : "yes"
 		},
 
