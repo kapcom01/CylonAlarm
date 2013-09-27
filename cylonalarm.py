@@ -1,32 +1,24 @@
 #! /usr/bin/env python
 import sys
-import os
 import gobject
 import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 
-import json
-
 from threads import CylonAlarm
 from hardware import CylonHardware
 from video import CylonVideo
 
-lib_path = os.path.abspath('lib/')
-sys.path.append(lib_path)
+import json
 
 with open("config.json") as f:
 	config = json.load(f)
 
 chw = CylonHardware(config)
-cv = CylonVideo()
+cv = CylonVideo(config)
 ca = []
 
-print("CylonAlarm version: 0.2.8")
-
-for action in config["actions"]:
-	if config["actions"][action]["type"]=="video":
-		cv.load_images(config["actions"][action]["images"])
+print("CylonAlarm version: 0.3.0")
 
 hardcoded_methods = {
 	"high" : chw.high,

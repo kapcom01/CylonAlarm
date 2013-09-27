@@ -9,9 +9,13 @@ sys.path.append(lib_path)
 from adafruit.pyscope import pyscope
 
 class CylonVideo():
-	def __init__(self):
+	def __init__(self,config):
 
 		self.images={}
+		for action in config["actions"]:
+			if config["actions"][action]["type"]=="video":
+				for filename in config["actions"][action]["images"]:
+					self.images[filename] = pygame.image.load('images/'+filename)
 
 		white = (255, 255, 255)
 		w = 656
@@ -25,10 +29,6 @@ class CylonVideo():
 		self.scope.screen.fill((white))
 
 		self.clock = pygame.time.Clock()
-
-	def load_images(self,filenames):
-		for filename in filenames:
-			self.images[filename] = pygame.image.load('images/'+filename)
 
 	def show_image(self,filename):
 		self.scope.screen.blit(self.images[filename[0]],(0,0))
