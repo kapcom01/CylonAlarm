@@ -2,6 +2,8 @@ from threading import Thread, Event, Timer
 from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
+import socket
+import pickle
 
 def print_time():
 	now = datetime.now()
@@ -32,6 +34,45 @@ class BaseThread:
 
 	#def setup_thread(self):
 		#self.thread = Thread(target=self.thread_action, args=(self.event,))
+
+class CylonSocket(BaseThread):
+	def __init__(self,ca,config):
+		BaseThread.__init__(self)
+		self.ca = ca
+		self.config = config
+		self.sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		self.sock.bind(('127.0.0.1',5000))
+		self.sock.listen(5)
+
+	def setup_thread(self):
+		self.thread = Thread(target=self.thread_action, args=(self.event,))
+
+	def thread_action(self,stop_event):
+		while not stop_event.is_set():
+			client, address = self.sock.accept() 
+			data = client.recv(1024)
+			data = pickle.loads(data)
+			if data["nfc_call"]:
+				self.nfc_call(data["nfc_call"]["tag_id"],data["nfc_call"]["domain_id"])
+			client.close()
+
+	def nfc_call(self,tag_id,domain_id):
+		for tag in self.config["tags"]:
+			if tag["id"] == tag_id:
+				for domain in tag["domain_id"]:
+					if domain==int(domain_id):
+						self.ca[int(domain_id)].actdeact()
+
+	def thread_stop(self):
+		self.event.set()
+		# REALLY UGLY BUG HERE ##########
+		print("Ugly workaround:")
+		from subprocess import call
+		call(["python", "check_tag.py", "webapp@@gskjw734", "1"])
+		###########################################
+		self.sock.close()
+		BaseThread.thread_stop(self)
+		print("ok, sockets closed")
 
 class SendSMS(BaseThread):
 	"""docstring for SendSMS"""
@@ -195,19 +236,20 @@ class CylonAlarm():
 			self.state = "movement"
 			for zone in self.config["connections"]["zones"]:
 				if zone["pin"] == channel:
+					zone_name=zone["name"]
 					if zone["level"] == 1:
+						self.sendsms.set_text(print_time()+" ["+self.domain_name+"] Movement detected at Zone <"+zone_name+">.")
+						log(print_time()+" ["+self.domain_name+"]\033[1;97m Movement detected at Zone <"+zone_name+">, you have "+str(self.config["settings"]["alarm_delay"])+" seconds...\033[0m")
+
 						self.alarm_delay_timer = Timer(self.config["settings"]["alarm_delay"],self.sound_the_alarm)
 						self.alarm_delay_timer.start()
 						self.action_thread.new_state_set(self.state)
 					elif zone["level"] == 2:
+						self.sendsms.set_text(print_time()+" ["+self.domain_name+"] Movement detected at Zone <"+zone_name+">. (Level=2)")
+						log(print_time()+" ["+self.domain_name+"]\033[1;97m Movement detected at Zone <"+zone_name+">. (Level=2)")
+
 						self.sound_the_alarm()
 					break
-			for zone in self.config["connections"]["zones"]:
-				if channel==zone["pin"]:
-					zone_name=zone["name"]
-					break
-			self.sendsms.set_text(print_time()+" ["+self.domain_name+"] Movement detected at Zone <"+zone_name+">.")
-			log(print_time()+" ["+self.domain_name+"]\033[1;97m Movement detected at Zone <"+zone_name+">, you have "+str(self.config["settings"]["alarm_delay"])+" seconds...\033[0m")
 
 	def sound_the_alarm(self):
 		self.action_thread.thread_stop()

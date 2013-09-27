@@ -6,6 +6,7 @@ import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 
 from threads import CylonAlarm
+from threads import CylonSocket
 from hardware import CylonHardware
 from video import CylonVideo
 
@@ -68,26 +69,15 @@ for domain in config["domains"]:
 				break
 	ca.append(CylonAlarm(domain["id"],config,on_state_actions,chw,cv))	# initiate domain instances
 
-class MyDBUSService(dbus.service.Object):
-	def __init__(self):
-		bus_name = dbus.service.BusName('org.kapcom.synagermos', bus=dbus.SessionBus())
-		dbus.service.Object.__init__(self, bus_name, '/org/kapcom/synagermos')
+cs = CylonSocket(ca,config)
+cs.thread_start()
 
-	@dbus.service.method('org.kapcom.synagermos')
-	def nfc_call(self,tag_id,domain_id):
-		for tag in config["tags"]:
-			if tag["id"] == tag_id:
-				for domain in tag["domain_id"]:
-					if domain==int(domain_id):
-						ca[int(domain_id)].actdeact()
- 
-DBusGMainLoop(set_as_default=True)
-myservice = MyDBUSService()
 gobject.threads_init() #http://www.jejik.com/articles/2007/01/python-gstreamer_threading_and_the_main_loop/
 try:
 	gobject.MainLoop().run()
 except:
 	print("\nCleaning up...")
+	cs.thread_stop()
 	for cylonalarm in ca:
 		cylonalarm.__exit__()
 	chw.reset_to_default_states()
