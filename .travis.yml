@@ -2,6 +2,10 @@ language: python
 python:
     - 2.7
 
+branches:
+  only:
+    - tests-n-improvements
+
 before_install:
     sudo apt-get install python-gobject
 

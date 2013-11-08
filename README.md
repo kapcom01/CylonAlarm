@@ -1,4 +1,4 @@
-[![Build Status](NOTE: Use something like Travis CI http://about.travis-ci.org/docs/user/getting-started/)
+[![Build Status](https://travis-ci.org/kapcom01/CylonAlarm.png?branch=tests-n-improvements)](https://travis-ci.org/kapcom01/CylonAlarm)
 
 # CylonAlarm
 
