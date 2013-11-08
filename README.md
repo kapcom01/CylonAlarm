@@ -19,7 +19,7 @@ First of all we log in to Raspberry Pi *(which is running Raspbian OS)* through 
 
     ssh pi@raspberrypi.lan
 
-Then we do some initial configuration, like expand filesystem, changing password, and changinh hostname:
+Then we do some initial configuration, like change timezon, expand filesystem, change password and hostname:
 
     sudo raspi-config
 
@@ -29,9 +29,7 @@ Disable the Serial Console to free the UART connection
 
     sudo rpi-serial-console disable
 
-And enable the i2c connection protocol following these instructions:
-
-    http://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c
+And enable the i2c connection protocol following these instructions: http://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c
 
 If we are going to use an NFC Breakout Board with UART, we will need the [*nfc-eventd*](http://nfc-tools.org/index.php?title=Nfc-eventd) app, so we have to do the following:
 
@@ -108,7 +106,7 @@ and we should now see the screen where we left it.
 
 ### Development
 
-To see what has changed in recent versions of CylonAlarm, see the [CHANGELOG]().
+To see what has changed in recent versions of CylonAlarm, see the [CHANGELOG](CHANGELOG.md).
 
 ### Core Team Members
 
@@ -122,6 +120,6 @@ Feel free to contact me.
 
 ### Copyright
 
-Copyright © 2013 Emmanouel Kapernaros. See [LICENSE]() for details.
+Copyright © 2013 Emmanouel Kapernaros. See [LICENSE](LICENSE.md) for details.
 
-md files by [OSS Manifesto](http://ossmanifesto.com/).
+.md files by [OSS Manifesto](http://ossmanifesto.com/).
