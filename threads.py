@@ -52,8 +52,11 @@ class CylonSocket(BaseThread):
 			client, address = self.sock.accept() 
 			data = client.recv(1024)
 			data = pickle.loads(data)
-			if data["nfc_call"]:
+			# AJAX
+			if "nfc_call" in data:
 				self.nfc_call(data["nfc_call"]["tag_id"],data["nfc_call"]["domain_id"])
+			elif "actdeact" in data:
+				client.send(self.ca[int(data["actdeact"]["domain_id"])].actdeact())
 			client.close()
 
 	def nfc_call(self,tag_id,domain_id):
@@ -68,7 +71,7 @@ class CylonSocket(BaseThread):
 		# REALLY UGLY BUG HERE ##########
 		print("Ugly workaround:")
 		from subprocess import call
-		call(["python", "check_tag.py", "webapp@@gskjw734", "1"])
+		call(["python", "lib/jsonsockclient.py", "webapp@@gskjw734", "1"])
 		###########################################
 		self.sock.close()
 		BaseThread.thread_stop(self)
@@ -186,9 +189,9 @@ class CylonAlarm():
 
 	def actdeact(self):
 		if self.is_deactivated():
-			self.sactivate()
+			return self.sactivate()
 		else:
-			self.deactivate()
+			return self.deactivate()
 
 	def sactivate(self):
 		self.action_thread.thread_stop()
@@ -197,6 +200,7 @@ class CylonAlarm():
 		self.activation_timer = Timer(self.config["settings"]["activation_wait"],self.start_sensing)
 		self.activation_timer.start()
 		self.action_thread.new_state_set(self.state)
+		return self.state
 
 	def deactivate(self):
 		self.action_thread.thread_stop()
@@ -207,6 +211,7 @@ class CylonAlarm():
 		self.state = "deactivated"
 		log(print_time()+" ["+self.domain_name+"] \033[93mDeactivated\033[0m")
 		self.action_thread.new_state_set(self.state)
+		return self.state
 
 	def check_all_zones_state(self):
 		for zone in self.config["connections"]["zones"]:
@@ -229,7 +234,7 @@ class CylonAlarm():
 		self.action_thread.thread_stop()
 
 	def movement(self,channel):
-		pass_check = self.hardware.getSensorInAfterDelay(channel) and self.state=="activated" and not self.state=="alarming" and not self.alarm_delay_timer.isAlive()
+		pass_check = self.hardware.getSensorInAfterDelay(channel) and self.state=="activated" and not self.alarm_delay_timer.isAlive()
 		if pass_check:
 			self.action_thread.thread_stop()
 			self.stop_sensing()
@@ -265,11 +270,13 @@ class CylonAlarm():
 		self.action_thread.new_state_set("alarming")
 
 	def stop_the_alarm(self):
+		self.action_thread.thread_stop()
 		for siren in self.config["connections"]["sirens"]:
 			for domain in siren["domain"]:
 				if domain == self.domain_id:
 					self.hardware.low(siren["pin"])
 		log(print_time()+" ["+self.domain_name+"]\033[1;97m Alarm stopped\033[0m")
+		self.action_thread.new_state_set("activated")
 
 	def __exit__(self):
 		self.activation_timer.cancel()

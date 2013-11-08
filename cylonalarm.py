@@ -1,9 +1,6 @@
 #! /usr/bin/env python
 import sys
 import gobject
-import dbus
-import dbus.service
-from dbus.mainloop.glib import DBusGMainLoop
 
 from threads import CylonAlarm
 from threads import CylonSocket
