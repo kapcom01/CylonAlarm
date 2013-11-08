@@ -1,0 +1,105 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides: cylonalarm_webuid
+# Required-Start: $remote_fs $syslog
+# Required-Stop: $remote_fs $syslog
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: WebUI for CylonAlarm
+# Description: Start / stop cylonalarm_webuid
+### END INIT INFO
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="WebUI for CylonAlarm"
+NAME=webui.py
+HOME="/home/pi/CylonAlarm"
+
+LOGFILE=$HOME/$NAME_startscript.log
+SCRIPTNAME=$0
+
+. /lib/init/vars.sh
+. /lib/lsb/init-functions
+
+check_process() {
+    pgrep -f "$NAME"
+}
+
+do_start()
+{
+    if ! cd $HOME;python $NAME; then
+        log_failure_msg "Could not run start script"
+        return 2
+    fi
+}
+
+do_stop()
+{
+    for i in `check_process`; do
+        [ "$VERBOSE" != no ] && log_action_msg "Killing process with PID $i"
+        kill -TERM $i
+        [ "$VERBOSE" != no ] && log_action_end_msg $?
+    done
+
+    return 0
+}
+
+case "$1" in
+  start)
+    [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+    do_start
+    case "$?" in
+        0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+        *) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+    esac
+    ;;
+  stop)
+    [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+    do_stop
+    case "$?" in
+        0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+        2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+    esac
+    ;;
+  status)
+    log_daemon_msg "Checking for running $DESC processes"
+
+    process_running=false
+    for i in `check_process`; do
+        log_action_msg "Found process with PID $i"
+        process_running=true
+    done
+
+    if $process_running; then
+        log_action_msg "$DESC health is OK"
+        log_end_msg 0
+    else
+        log_daemon_msg "$DESC process is DOWN"
+        log_end_msg 0
+    fi
+    ;;
+  restart|force-reload)
+    [ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
+    do_stop
+    case "$?" in
+      0|1)
+        do_start
+        case "$?" in
+            0) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+            1) [ "$VERBOSE" != no ] && log_failure_msg "old process is still running" && log_end_msg 1 ;;
+            *) [ "$VERBOSE" != no ] && log_failure_msg "failed to start" && log_end_msg 1 ;;
+        esac
+        ;;
+      *)
+        [ "$VERBOSE" != no ] && log_failure_msg "failed to stop"
+        [ "$VERBOSE" != no ] && log_end_msg 1
+        ;;
+    esac
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+    exit 3
+    ;;
+esac
+
+:
