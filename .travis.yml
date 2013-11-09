@@ -4,9 +4,9 @@ python:
 
 branches:
   only:
-    - master
+    - tests-n-improvements
 
 before_install:
     sudo apt-get install python-gobject
 
-script: trial klein
+script: ./cylonalarm.py --test
