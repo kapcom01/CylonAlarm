@@ -4,7 +4,7 @@ python:
 
 branches:
   only:
-    - tests-n-improvements
+    - master
 
 before_install:
     sudo apt-get install python-gobject
