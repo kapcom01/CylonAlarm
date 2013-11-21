@@ -16,7 +16,7 @@ NAME=cylonalarm
 HOME="/home/pi/CylonAlarm"
 USER=root
 
-STARTSCRIPT=./cylonalarm.py
+STARTSCRIPT="./cylonalarm.py"
 
 LOGFILE=$HOME/logs/$NAME-startscript.log
 SCRIPTNAME=$0

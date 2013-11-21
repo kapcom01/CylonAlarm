@@ -16,7 +16,7 @@ NAME=nfcd
 HOME="/home/pi/CylonAlarm"
 USER=root
 
-STARTSCRIPT=./nfcd/i2c-nfcd.py
+STARTSCRIPT="./nfcd/i2c-nfcd.py"
 
 LOGFILE=$HOME/logs/$NAME-startscript.log
 SCRIPTNAME=$0

@@ -4,7 +4,7 @@
 import sys
 
 import socket
-import pickle
+import json
 
 class JsonSocketClient():
 	def __init__(self,address,port):
@@ -15,7 +15,7 @@ class JsonSocketClient():
 
 	def sendJSON(self,data):
 		self.c.connect((self.address,self.port))
-		self.c.send(pickle.dumps(data))
+		self.c.send(json.dumps(data))
 		data_recv=self.c.recv(1024)
 		self.c.close()
 		return data_recv

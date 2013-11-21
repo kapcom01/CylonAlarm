@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "./nfcd/i2c-nfcd.py", line 11, in <module>
+    from py532lib.i2c import *
+ImportError: No module named py532lib.i2c
+-su: ./nfcd/i2c-nfcd.py: No such file or directory
