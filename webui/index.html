@@ -4,50 +4,79 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>CylonAlarm (0.4.0)</title>
-    <link href="bootstrap.css" rel="stylesheet">
     <link href="bootstrap.min.css" rel="stylesheet">
+    <script src="jquery-1.10.2.js"></script>
 
     <script>
-    function loadXMLDoc(domain)
-    {
-    var xmlhttp;
-    if (window.XMLHttpRequest)
-      {// code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp=new XMLHttpRequest();
-      }
-    else
-      {// code for IE6, IE5
-      xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-      }
-    xmlhttp.open("GET","/actdeact/"+domain,true);
-    xmlhttp.send();
-    return xmlhttp.responseXML;
-    }
-    </script>
+      function actdeact(domain) {
+        var xmlhttp;
 
-    <script>
-    // hasClass
-    function hasClass(elem, className) {
-      return new RegExp(' ' + className + ' ').test(' ' + elem.className + ' ');
-    }
-    // addClass
-    function addClass(elem, className) {
-        if (!hasClass(elem, className)) {
-          elem.className += ' ' + className;
+        if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+          xmlhttp=new XMLHttpRequest();
         }
-    }
-    function removeClass(elem, className) {
-      var newClass = ' ' + elem.className.replace( /[\t\r\n]/g, ' ') + ' ';
-      if (hasClass(elem, className)) {
-            while (newClass.indexOf(' ' + className + ' ') >= 0 ) {
-                newClass = newClass.replace(' ' + className + ' ', ' ');
+        else {// code for IE6, IE5
+          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+        }
+
+        xmlhttp.onreadystatechange=function(){
+          if (xmlhttp.readyState==4 && xmlhttp.status==200){
+            if (xmlhttp.responseText != "deactivated") {
+              $('#'+domain).addClass("active");
             }
-            elem.className = newClass.replace(/^\s+|\s+$/g, '');
+            else {
+              $('#'+domain).removeClass("active");
+            }
+            return xmlhttp.responseText;
+          }
         }
-    }
+        
+        xmlhttp.open("GET","actdeact/"+domain,true);
+        xmlhttp.send();
+      }
+
+      $(document).ready(function() {
+        var xmlhttp;
+        if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+          xmlhttp=new XMLHttpRequest();
+        }
+        else {// code for IE6, IE5
+          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange=function(){
+          if (xmlhttp.readyState==4 && xmlhttp.status==200){
+            var i;
+            var res = eval ("(" + xmlhttp.responseText + ")");
+            $(".panel-title").html("Βρέθηκαν "+res["status"].length+" τομείς:");
+            for (i=0;i<res["status"].length;i++){
+              var domain_id = res["status"][i].domain_id;
+              var domain_name = res["status"][i].domain_name;
+              var domain_state = res["status"][i].state;
+              var domain_item = "<a id='"+domain_id+"' href='javascript:;' onclick='state=actdeact("+domain_id+");' class='list-group-item'> <h4 class='list-group-item-heading'>"+domain_name+"</h4> <p class='list-group-item-text'>Πατήστε για On/Off</p> </a>";
+              $(".list-group").append(domain_item);
+
+              // ugly..
+              if (domain_state != "deactivated") {
+                $('#'+domain_id).addClass("active");
+              }
+              else {
+                $('#'+domain_id).removeClass("active");
+              }
+            }
+          }
+        }
+        xmlhttp.open("GET","status",true);
+        xmlhttp.send();
+      }); 
     </script>
 
   </head>
+
+<!--
+  <a id="0" href="javascript:;" onclick="state=actdeact(0);" class="list-group-item">
+    <h4 class="list-group-item-heading">Υπόγειο</h4>
+    <p class="list-group-item-text">Πατήστε για On/Off</p>
+  </a>
+-->
 
   <body>
 
@@ -79,27 +108,18 @@
 
       <div id="domains" class="panel panel-primary">
        <div class="panel-heading">
-        <h3 class="panel-title">Βρέθηκαν 2 Τομείς:</h3>
+        <h3 class="panel-title">Βρέθηκαν 0 Τομείς:</h3>
        </div>
         <div class="panel-body">
 
           <div class="list-group">
-            <a href="javascript:;" onclick="state=loadXMLDoc(0); if (state=='activating') {addClass(this, 'active');} else {removeClass(this, 'active');}" class="list-group-item">
-              <h4 class="list-group-item-heading">Υπόγειο</h4>
-              <p class="list-group-item-text">Πατήστε για On/Off</p>
-            </a>
-            <a href="javascript:;" onclick="state=loadXMLDoc(1); if (state=='activating') {addClass(this, 'active');} else {removeClass(this, 'active');}" class="list-group-item">
-              <h4 class="list-group-item-heading">Σπίτι</h4>
-              <p class="list-group-item-text">Πατήστε για On/Off</p>
-            </a>
+            <!-- cylon magic goes here-->
           </div>
 
         </div>
       </div>
 
     </div><!-- /.container -->
-
-    <script src="jquery-1.10.2.js"></script>
 
   </body>
 </html>

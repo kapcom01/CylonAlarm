@@ -3,7 +3,7 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 import socket
-import pickle
+import json
 
 def print_time():
 	now = datetime.now()
@@ -51,12 +51,24 @@ class CylonSocket(BaseThread):
 		while not stop_event.is_set():
 			client, address = self.sock.accept() 
 			data = client.recv(1024)
-			data = pickle.loads(data)
+			data = json.loads(data)
 			# AJAX
 			if "nfc_call" in data:
 				self.nfc_call(data["nfc_call"]["tag_id"],data["nfc_call"]["domain_id"])
 			elif "actdeact" in data:
 				client.send(self.ca[int(data["actdeact"]["domain_id"])].actdeact())
+			elif "status" in data:
+				res = {
+				"status": []
+				}
+				for domain in self.config["domains"]:
+					state = self.ca[domain["id"]].state
+					res["status"].append({
+						"domain_id": str(domain["id"]),
+						"domain_name": str(domain["name"]),
+						"state": state
+						})
+				client.send(json.dumps(res))
 			client.close()
 
 	def nfc_call(self,tag_id,domain_id):
