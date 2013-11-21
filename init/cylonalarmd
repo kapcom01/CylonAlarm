@@ -12,10 +12,13 @@
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="CylonAlarm Daemon"
-NAME=cylonalarm.py
+NAME=cylonalarm
 HOME="/home/pi/CylonAlarm"
+USER=root
 
-LOGFILE=$HOME/$NAME_startscript.log
+STARTSCRIPT="./cylonalarm.py"
+
+LOGFILE=$HOME/logs/$NAME-startscript.log
 SCRIPTNAME=$0
 
 . /lib/init/vars.sh
@@ -27,7 +30,7 @@ check_process() {
 
 do_start()
 {
-    if ! cd $HOME;./$NAME; then
+    if ! su -l $USER -c "cd $HOME; $STARTSCRIPT >> $LOGFILE 2>&1 &"; then
         log_failure_msg "Could not run start script"
         return 2
     fi

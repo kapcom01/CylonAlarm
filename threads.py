@@ -12,7 +12,7 @@ def print_time():
 
 def log(text):
 	print(text)
-	with open("cylonalarm.log","a") as f:
+	with open("logs/cylonalarm.log","a") as f:
 		f.write(text+"\n")
 
 class BaseThread:
