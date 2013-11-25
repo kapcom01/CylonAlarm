@@ -2,12 +2,22 @@
 import sys
 import gobject
 
+import json
+import logging
+
 from threads import CylonAlarm
 from threads import CylonSocket
-from hardware import CylonHardware
-from video import CylonVideo
 
-import json
+logger = logging.getLogger()
+logger.setLevel("INFO")
+
+if len(sys.argv)>1 and sys.argv[1] == "--test":
+	logger.setLevel("DEBUG")
+	from tests.hardware import CylonHardware
+	from tests.video import CylonVideo
+else:
+	from hardware import CylonHardware
+	from video import CylonVideo
 
 with open("config.json") as f:
 	config = json.load(f)
@@ -16,7 +26,7 @@ chw = CylonHardware(config)
 cv = CylonVideo(config)
 ca = []
 
-print("CylonAlarm version: 0.3.0")
+logging.info("CylonAlarm version: 0.4.0")
 
 hardcoded_methods = {
 	"high" : chw.high,
@@ -69,17 +79,25 @@ for domain in config["domains"]:
 cs = CylonSocket(ca,config)
 cs.thread_start()
 
-gobject.threads_init() #http://www.jejik.com/articles/2007/01/python-gstreamer_threading_and_the_main_loop/
-try:
-	gobject.MainLoop().run()
-except:
-	print("\nCleaning up...")
-	cs.thread_stop()
-	for cylonalarm in ca:
-		cylonalarm.__exit__()
-	chw.reset_to_default_states()
-	chw.cleanup()
-	gobject.MainLoop().quit()
-	print("Bye")
-	sys.exit(0)
+# TESTS
+from time import sleep
+for instance in ca:
+	instance.actdeact()
+	sleep(3)
+	instance.actdeact()
+	sleep(1)
+
+# gobject.threads_init() #http://www.jejik.com/articles/2007/01/python-gstreamer_threading_and_the_main_loop/
+# try:
+# 	gobject.MainLoop().run()
+# except:
+logging.info("\nCleaning up...")
+cs.thread_stop()
+for cylonalarm in ca:
+	cylonalarm.__exit__()
+chw.reset_to_default_states()
+chw.cleanup()
+gobject.MainLoop().quit()
+logging.info("Bye")
+sys.exit(0)
 

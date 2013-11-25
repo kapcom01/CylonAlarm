@@ -4,6 +4,7 @@ import smtplib
 from email.mime.text import MIMEText
 import socket
 import json
+import logging
 
 def print_time():
 	now = datetime.now()
@@ -11,7 +12,7 @@ def print_time():
 	return now
 
 def log(text):
-	print(text)
+	logging.info(text)
 	with open("logs/cylonalarm.log","a") as f:
 		f.write(text+"\n")
 
@@ -128,10 +129,11 @@ class SendSMS(BaseThread):
 		self.text=text
 
 class Action(BaseThread):
-	def __init__(self,on_state_actions,hardware,video):
+	def __init__(self,action,on_state_actions,hardware,video):
 		BaseThread.__init__(self)
 		self.on_state_actions = on_state_actions
-		self.actions = []
+		self.action = action
+		self.thread_pool=[]
 		self.hardware=hardware
 		self.video=video
 
@@ -139,27 +141,30 @@ class Action(BaseThread):
 		self.thread = Thread(target=self.thread_action, args=(self.event,))
 
 	def new_state_set(self,state):
-		self.actions = self.on_state_actions[state]
-		self.thread_start()
+		actions = self.on_state_actions[state]
+		for a in actions :
+			new_action_thread=Action(a,None,self.hardware,self.video)
+			self.thread_pool.append(new_action_thread)
+		for action_thread in self.thread_pool :
+			action_thread.thread_start()
 
 	def thread_action(self, stop_event):
-		a=[]
-		for a in self.actions:
-			if a["loop"]=="no":
-				if a["type"]=="free_gpios":
-					a["hardcoded_method"](a["pin"])
-				elif a["type"]=="video":
-					a["hardcoded_method"](a["images"])
+		if self.action["loop"]=="no":
+			if self.action["type"]=="free_gpios":
+				self.action["hardcoded_method"](self.action["pin"])
+			elif self.action["type"]=="video":
+				self.action["hardcoded_method"](self.action["images"])
 		while not stop_event.is_set():
-			for a in self.actions:
-				if a["loop"]=="yes":
-					if a["type"]=="free_gpios":
-						a["hardcoded_method"](a["pin"])
-						self.event.wait(1)
-					elif a["type"]=="video":
-						a["hardcoded_method"](a["images"])
+			if self.action["loop"]=="yes":
+				if self.action["type"]=="free_gpios":
+					self.action["hardcoded_method"](self.action["pin"])
+					self.event.wait(1)
+				elif self.action["type"]=="video":
+					self.action["hardcoded_method"](self.action["images"])
 
 	def thread_stop(self):
+		for action_thread in self.thread_pool :
+			action_thread.thread_stop()
 		self.hardware.reset_to_default_states()
 		BaseThread.thread_stop(self)
 
@@ -184,7 +189,7 @@ class CylonAlarm():
 		self.activation_timer = Timer(0, self.dummy)
 		self.alarm_delay_timer = Timer(0, self.dummy)
 		self.alarm_duration_timer = Timer(0, self.dummy)
-		self.action_thread=Action(on_state_actions,self.hardware,self.video)
+		self.action_thread=Action(None,on_state_actions,self.hardware,self.video)
 		self.sendsms = SendSMS(self.domain_name,self.config)
 		log("\n"+print_time()+" ["+self.domain_name+"] \033[92mRunning...\033[0m Press Ctrl+C to exit")
 		self.deactivate() # todo
