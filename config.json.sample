@@ -47,7 +47,7 @@
 		"zones" : [
 			{
 				"id" : 1,
-				"name" : "Front Door Magnetic Trap"
+				"name" : "Front Door Magnetic Trap",
 				"pin" : 7,
 				"domain" : [0],
 				"level" : 1

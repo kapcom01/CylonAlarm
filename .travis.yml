@@ -9,4 +9,4 @@ branches:
 before_install:
     sudo apt-get install python-gobject
 
-script: ./cylonalarm.py --test
+script: ./tests/run-tests.sh
