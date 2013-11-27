@@ -1,10 +1,12 @@
 import RPi.GPIO as GPIO
 from time import sleep
+import logging
 
 GPIO.setwarnings(False)
 
 class CylonHardware():
 	def __init__(self,config):
+		logging.debug("[hardware] init")
 		self.config = config
 		GPIO.setmode(GPIO.BOARD)
 
@@ -24,15 +26,19 @@ class CylonHardware():
 		print("GPIO.VERSION: " + str(GPIO.VERSION))
 
 	def cleanup(self):
+		logging.debug("[hardware] cleanup()")
 		GPIO.cleanup()
 
 	def high(self,pin):
+		logging.debug("[hardware] high("+str(pin)+")")
 		GPIO.output(pin, 1)
 
 	def low(self,pin):
+		logging.debug("[hardware] low("+str(pin)+")")
 		GPIO.output(pin, 0)
 
 	def high_edge(self,pin):
+		logging.debug("[hardware] high_edge("+str(pin)+")")
 		for value in range(0,3):
 			GPIO.output(pin,value%2)
 			sleep(0.1)
@@ -42,6 +48,7 @@ class CylonHardware():
 		self.high_edge(pin)
 
 	def low_edge(self,pin):
+		logging.debug("[hardware] low_edge("+str(pin)+")")
 		for value in range(1,4):
 			GPIO.output(pin,value%2)
 			sleep(0.1)
@@ -58,12 +65,15 @@ class CylonHardware():
 		return 0
 
 	def addSensorEvent(self,pin,my_callback):
+		logging.debug("[hardware] addSensorEvent("+str(pin)+", my_callback)")
 		GPIO.add_event_callback(pin, my_callback)
 
 	def removeSensorEvent(self,pin):
+		logging.debug("[hardware] removeSensorEvent("+str(pin)+")")
 		GPIO.remove_event_detect(pin)
 
 	def reset_to_default_states(self):
+		logging.debug("[hardware] reset_to_default_states")
 		for free_gpio in self.config["connections"]["free_gpios"]:
 			GPIO.output(free_gpio["pin"],free_gpio["default_value"])
 

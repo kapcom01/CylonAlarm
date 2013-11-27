@@ -2,6 +2,7 @@ import sys
 import os
 import pygame
 from pygame.locals import*
+import logging
 
 lib_path = os.path.abspath('lib/')
 sys.path.append(lib_path)
@@ -10,6 +11,7 @@ from adafruit.pyscope import pyscope
 
 class CylonVideo():
 	def __init__(self,config):
+		logging.debug("[video] init")
 
 		self.images={}
 		for action in config["actions"]:
@@ -31,10 +33,12 @@ class CylonVideo():
 		self.clock = pygame.time.Clock()
 
 	def show_image(self,filename):
+		logging.debug("[video] show_image()")
 		self.scope.screen.blit(self.images[filename[0]],(0,0))
 		pygame.display.update()
 
 	def animate_images(self,filenames):
+		logging.debug("[video] animate_images()")
 		for filename in filenames:
 			self.clock.tick(2)
 			self.scope.screen.blit(self.images[filename],(0,0))

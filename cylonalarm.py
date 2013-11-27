@@ -11,7 +11,10 @@ from threads import CylonSocket
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
-if len(sys.argv)>1 and sys.argv[1] == "--test":
+if len(sys.argv)>1 and sys.argv[1] == "--debug" :
+	logger.setLevel("DEBUG")
+
+if len(sys.argv)>1 and sys.argv[1] == "--test" :
 	logger.setLevel("DEBUG")
 	from tests.hardware import CylonHardware
 	from tests.video import CylonVideo
@@ -79,25 +82,29 @@ for domain in config["domains"]:
 cs = CylonSocket(ca,config)
 cs.thread_start()
 
-# TESTS
-from time import sleep
-for instance in ca:
-	instance.actdeact()
-	sleep(3)
-	instance.actdeact()
-	sleep(1)
+def exit_cylonalarm():
+	logging.info("\nCleaning up...")
+	cs.thread_stop()
+	for cylonalarm in ca:
+	        cylonalarm.__exit__()
+	chw.reset_to_default_states()
+	chw.cleanup()
+	gobject.MainLoop().quit()
+	logging.info("Bye")
+	sys.exit(0)
 
-# gobject.threads_init() #http://www.jejik.com/articles/2007/01/python-gstreamer_threading_and_the_main_loop/
-# try:
-# 	gobject.MainLoop().run()
-# except:
-logging.info("\nCleaning up...")
-cs.thread_stop()
-for cylonalarm in ca:
-	cylonalarm.__exit__()
-chw.reset_to_default_states()
-chw.cleanup()
-gobject.MainLoop().quit()
-logging.info("Bye")
-sys.exit(0)
+if len(sys.argv)>1 and sys.argv[1] == "--test":
+	# TESTS
+	from time import sleep
+	for instance in ca:
+		instance.actdeact()
+		sleep(3)
+		instance.actdeact()
+		sleep(1)
+	exit_cylonalarm()
 
+gobject.threads_init() #http://www.jejik.com/articles/2007/01/python-gstreamer_threading_and_the_main_loop/
+try:
+	gobject.MainLoop().run()
+except:
+	exit_cylonalarm()

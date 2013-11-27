@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 import socket
 import json
 import logging
+import pdb
 
 def print_time():
 	now = datetime.now()
@@ -145,17 +146,21 @@ class Action(BaseThread):
 		for a in actions :
 			new_action_thread=Action(a,None,self.hardware,self.video)
 			self.thread_pool.append(new_action_thread)
+			logging.debug("added new action thread:")
+			logging.debug(a)
 		for action_thread in self.thread_pool :
 			action_thread.thread_start()
 
 	def thread_action(self, stop_event):
 		if self.action["loop"]=="no":
+			logging.debug("run thread: %s"%self.thread.ident)
 			if self.action["type"]=="free_gpios":
 				self.action["hardcoded_method"](self.action["pin"])
 			elif self.action["type"]=="video":
 				self.action["hardcoded_method"](self.action["images"])
 		while not stop_event.is_set():
 			if self.action["loop"]=="yes":
+				logging.debug("loop thread: %s"%self.thread.ident)
 				if self.action["type"]=="free_gpios":
 					self.action["hardcoded_method"](self.action["pin"])
 					self.event.wait(1)
@@ -163,9 +168,16 @@ class Action(BaseThread):
 					self.action["hardcoded_method"](self.action["images"])
 
 	def thread_stop(self):
-		for action_thread in self.thread_pool :
-			action_thread.thread_stop()
-		self.hardware.reset_to_default_states()
+		if self.action==None:
+			logging.debug("killing action thread pool:")
+			for action_thread in self.thread_pool:
+				action_thread.thread_stop()
+			self.thread_pool=[]
+			logging.debug("killed all.")
+			self.hardware.reset_to_default_states()
+		else:
+			logging.debug("killing action thread (%s)"%self.thread.ident)
+			logging.debug(self.action)
 		BaseThread.thread_stop(self)
 
 class CylonAlarm():
