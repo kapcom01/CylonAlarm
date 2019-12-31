@@ -41,9 +41,9 @@ and for our CylonAlarm Board v0.2:
 # Circuit
 Follow the instructions on the images below to prepare the electronics.
 
-![circuit board](https://raw.github.com/kapcom01/CylonAlarm/master/images/cylonalarm_board.png)
+![circuit board](/docs/cylonalarm_board.png)
 
-![img visual connections](https://raw.github.com/kapcom01/CylonAlarm/master/images/cylonalarm_cabling.png)
+![img visual connections](/docs/cylonalarm_cabling.png)
 
 
 # Software Installation
