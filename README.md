@@ -3,7 +3,8 @@
 # About
 This is a **work-in-progress** project. The goal is to become a complete Home Alarm System, comparable to the expensive multi zone commercial systems, easy to setup and use and completely open source from top to bottom, so everyone can install it, study it, change it and do anything one might want to do with it.
 
-You can watch a CylonAlarm development [Youtube video](https://www.youtube.com/watch?v=pUje4jXdudw).
+You can watch a CylonAlarm development Youtube video:
+[![thumbnail](https://user-images.githubusercontent.com/21684/233463854-7bd45154-32d3-46bf-858e-a3ebcf618cec.png)](https://www.youtube.com/watch?v=pUje4jXdudw)
 
 ## Current Status (v0.2.8)
 With this version we have a working alarm system for our home/lab/garage/etc (one or more at the same time). It can **detect an intrusion** with motion detectors and door switches, and will turn on one or more **sirens**. It is enabled and disabled by the residents using **nfc tags** (to one or more installed nfc readers) which everyone can have in their keychains. It can also send a **notification-email** to pre-configured email addresses using a gmail account. In addition it can use GPIOs to trigger **custom made actions**.
